@@ -50,18 +50,11 @@ def print_report():
     print("Money:", resources.get("money"))
 
 
-def check_resources(product):
-    if resources.get("water") < product["ingredients"].get("water"):
-        print("Sorry there is not enough water.")
-        return False
-
-    if resources.get("milk") < product["ingredients"].get("milk", 0):
-        print("Sorry there is not enough milk.")
-        return False
-
-    if resources.get("coffee") < product["ingredients"].get("coffee"):
-        print("Sorry there is not enough coffee.")
-        return False
+def check_resources(ingredients):
+    for item in ingredients:
+        if resources[item] < ingredients[item]:
+            print(f"Sorry there is not enough {item}.")
+            return False
 
     return True
 
@@ -69,43 +62,36 @@ def check_resources(product):
 def main():
     while True:
         choice = input("What would you like? (espresso/latte/cappuccino): ")
-        product = MENU.get("espresso")
 
         if choice == "report":
             print_report()
             continue
-        elif choice == "espresso":
-            product = MENU.get("espresso")
-        elif choice == "latte":
-            product = MENU.get("latte")
-        elif choice == "cappuccino":
-            product = MENU.get("cappuccino")
-        elif choice == "off":
+        if choice == "off":
             return
-        else:
-            print("Choice not valid expected: report/espresso/latte/cappuccino")
+
+        product = MENU.get(choice)
+
+        if product is None:
+            print("Choice not valid, expected: espresso/latte/cappuccino/report/off")
+            continue
+        if check_resources(product.get("ingredients")) is False:
             continue
 
-        if check_resources(product) is False:
-            continue
-
-        moneyInserted = insert_coins()
-
-        change = round(moneyInserted - product.get("cost"), 2)
+        money_inserted = insert_coins()
+        change = round(money_inserted - product.get("cost"), 2)
         if change < 0:
             print("Sorry that's not enough money. Money refunded.")
             continue
 
-        print(f"Here is ${change} in change.")
-
+        for item in product["ingredients"]:
+            resources[item] -= product.get("ingredients").get(item)
         resources["money"] += product.get("cost")
-        resources["water"] -= product["ingredients"].get("water")
-        resources["coffee"] -= product["ingredients"].get("coffee")
-        resources["milk"] -= product["ingredients"].get("milk", 0)
 
+        print(f"Here is ${change} in change.")
         print("Here is your espresso ☕️. Enjoy!")
 
     return
+
 
 if __name__ == "__main__":
     main()
